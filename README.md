@@ -14,7 +14,7 @@ The cleaning process loads a raw dataset (e.g., `Base.csv`), performs value norm
 
 - Run cleaning:
 ```
-python run.py --mode clean --datacsv OriginalData/Base.csv
+python run.py --mode clean --datacsv OriginalData/"Base.csv"
 ```
 
 - Output: 
@@ -34,7 +34,7 @@ Each split is saved as a `.pkl` file, containing both the variant name and the d
 
 - Run preparation:
 ```
-python run.py --mode prepare --datacsv cleandata/Base_clean.csv
+python run.py --mode prepare --datacsv cleandata/"Base_clean.csv"
 ```
 
 - Output directory:
@@ -46,6 +46,15 @@ python run.py --mode prepare --datacsv cleandata/Base_clean.csv
 Other dataset variants (Variant I–V) are automatically handled and saved in corresponding prepared folders.
 
 ---
+
+## 3. Modeling Stage (MLP)
+
+This stage trains an MLP classifier using the prepared splits. It supports optional balancing of the train set with **none**, **random oversampling (ros)**, or **SMOTE (smote)**.
+
+- Run training:
+```
+python run.py --mode xgboost --preparedpath prepared_data/prepared_base
+```
 
 ## 3. Modeling Stage (XGBoost)
 

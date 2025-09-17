@@ -6,8 +6,9 @@ import pickle
 import pandas as pd
 import clean_data
 
-# NEW: import the model runner
+# Model runners
 from models import xgboost_model
+from models import mlp_binary_model  # <-- NEW
 
 
 # ---------------------------
@@ -17,16 +18,14 @@ def infer_variant_name(path: Path) -> str:
     stem = path.stem
     token = re.sub(r"[^A-Za-z0-9]+", "", stem).lower()
 
+    # combined/union datasets
+    if "unido" in token or "combined" in token:
+        return "Unido"
+
     if token.startswith("base"):
         return "Base"
 
-    roman_map = {
-        "i": "Variant I",
-        "ii": "Variant II",
-        "iii": "Variant III",
-        "iv": "Variant IV",
-        "v": "Variant V",
-    }
+    roman_map = {"i": "Variant I", "ii": "Variant II", "iii": "Variant III", "iv": "Variant IV", "v": "Variant V"}
     m = re.match(r"(?:variant|var)(i{1,3}|iv|v|1|2|3|4|5)", token)
     if m:
         grp = m.group(1)
@@ -86,8 +85,9 @@ def main():
         "--mode",
         type=str,
         required=True,
-        choices=["clean", "prepare", "xgboost"],
-        help="Pipeline mode. 'clean' -> clean CSV; 'prepare' -> write train/val/test pickles; 'xgboost' -> train model."
+        choices=["clean", "prepare", "xgboost", "mlp"],  # <-- add mlp
+        help="Pipeline mode. 'clean' -> clean CSV; 'prepare' -> write train/val/test pickles; "
+             "'xgboost' -> train XGBoost; 'mlp' -> train MLP."
     )
     parser.add_argument(
         "--datacsv",
@@ -97,12 +97,12 @@ def main():
     parser.add_argument(
         "--preparedpath",
         type=str,
-        help="For --mode xgboost: path to prepared variant folder, e.g. prepared_data/prepared_base"
+        help="For --mode xgboost/mlp: path to prepared variant folder, e.g. prepared_data/prepared_base"
     )
     parser.add_argument("--resampler", default="none", choices=["none", "ros", "smote"],
-                        help="Resampling strategy applied to TRAIN only.")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed for resampling and model.")
-    parser.add_argument("--smote-k", type=int, default=5, help="k_neighbors for SMOTE.")
+                        help="(xgboost) Resampling strategy applied to TRAIN only.")
+    parser.add_argument("--seed", type=int, default=42, help="(xgboost) Random seed for resampling and model.")
+    parser.add_argument("--smote-k", type=int, default=5, help="(xgboost) k_neighbors for SMOTE.")
     args = parser.parse_args()
 
     if args.mode in ("clean", "prepare"):
@@ -137,22 +137,23 @@ def main():
         prepared_dir = Path(args.preparedpath).expanduser().resolve()
         if not prepared_dir.exists():
             raise FileNotFoundError(f"Prepared path not found: {prepared_dir}")
-
-        # Run the model using the prepared splits
-        xgboost_model.run_xgb(prepared_dir)
-        
-    elif args.mode == "xgboost":
-        if not args.preparedpath:
-            raise ValueError("--preparedpath is required for mode 'xgboost'")
-        prepared_dir = Path(args.preparedpath).expanduser().resolve()
-        if not prepared_dir.exists():
-            raise FileNotFoundError(f"Prepared path not found: {prepared_dir}")
         xgboost_model.run_xgb(
             prepared_dir,
             resampler=args.resampler,
             seed=args.seed,
             smote_k=args.smote_k,
         )
+
+    elif args.mode == "mlp":  # <-- NEW
+        if not args.preparedpath:
+            raise ValueError("--preparedpath is required for mode 'mlp'")
+        prepared_dir = Path(args.preparedpath).expanduser().resolve()
+        if not prepared_dir.exists():
+            raise FileNotFoundError(f"Prepared path not found: {prepared_dir}")
+        # Use defaults inside the model file; you can expose CLI flags later if desired.
+        from models import mlp_binary_model
+        mlp_binary_model.run_mlp(prepared_dir)
+
 
 if __name__ == "__main__":
     main()

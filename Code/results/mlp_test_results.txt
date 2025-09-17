@@ -1,0 +1,7 @@
+==== MLP TEST RESULTS ====
+Loss: 0.059162
+Accuracy: 0.987582
+F1 (weighted): 0.983173
+Recall (weighted): 0.987582
+F1 (pos=1): 0.029745
+Recall (pos=1): 0.017345
