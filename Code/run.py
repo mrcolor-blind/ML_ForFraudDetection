@@ -8,7 +8,8 @@ import clean_data
 
 # Model runners
 from models import xgboost_model
-from models import mlp_binary_model  # <-- NEW
+from models import mlp_binary_model
+from models import lgbm_model  # NEW: LightGBM module
 
 
 # ---------------------------
@@ -85,9 +86,9 @@ def main():
         "--mode",
         type=str,
         required=True,
-        choices=["clean", "prepare", "xgboost", "mlp"],  # <-- add mlp
+        choices=["clean", "prepare", "xgboost", "mlp", "lgbm"],  # added lgbm
         help="Pipeline mode. 'clean' -> clean CSV; 'prepare' -> write train/val/test pickles; "
-             "'xgboost' -> train XGBoost; 'mlp' -> train MLP."
+             "'xgboost' -> train XGBoost; 'mlp' -> train MLP; 'lgbm' -> train LightGBM."
     )
     parser.add_argument(
         "--datacsv",
@@ -97,12 +98,14 @@ def main():
     parser.add_argument(
         "--preparedpath",
         type=str,
-        help="For --mode xgboost/mlp: path to prepared variant folder, e.g. prepared_data/prepared_base"
+        help="For --mode xgboost/mlp/lgbm: path to prepared variant folder, e.g. prepared_data/prepared_base"
     )
     parser.add_argument("--resampler", default="none", choices=["none", "ros", "smote"],
-                        help="(xgboost) Resampling strategy applied to TRAIN only.")
-    parser.add_argument("--seed", type=int, default=42, help="(xgboost) Random seed for resampling and model.")
-    parser.add_argument("--smote-k", type=int, default=5, help="(xgboost) k_neighbors for SMOTE.")
+                        help="(xgboost/mlp) Resampling strategy applied to TRAIN only.")
+    parser.add_argument("--seed", type=int, default=42,
+                        help="(xgboost/mlp) Random seed for resampling and model.")
+    parser.add_argument("--smote-k", type=int, default=5,
+                        help="(xgboost/mlp) k_neighbors for SMOTE.")
     args = parser.parse_args()
 
     if args.mode in ("clean", "prepare"):
@@ -144,16 +147,35 @@ def main():
             smote_k=args.smote_k,
         )
 
-    elif args.mode == "mlp":  # <-- NEW
+    elif args.mode == "mlp":
         if not args.preparedpath:
             raise ValueError("--preparedpath is required for mode 'mlp'")
         prepared_dir = Path(args.preparedpath).expanduser().resolve()
         if not prepared_dir.exists():
             raise FileNotFoundError(f"Prepared path not found: {prepared_dir}")
-        # Use defaults inside the model file; you can expose CLI flags later if desired.
-        from models import mlp_binary_model
-        mlp_binary_model.run_mlp(prepared_dir)
 
+        mlp_binary_model.run_mlp(
+            prepared_dir,
+            # optional hyperparams; keep defaults if you prefer
+            dropout=0.0,
+            lr=0.001,
+            batch_size=64,
+            epochs=3,
+            weight_decay=0.0,
+            # resampling controls
+            resampler=args.resampler,
+            seed=args.seed,
+            smote_k=args.smote_k,
+        )
+
+    elif args.mode == "lgbm":
+        if not args.preparedpath:
+            raise ValueError("--preparedpath is required for mode 'lgbm'")
+        prepared_dir = Path(args.preparedpath).expanduser().resolve()
+        if not prepared_dir.exists():
+            raise FileNotFoundError(f"Prepared path not found: {prepared_dir}")
+
+        lgbm_model.run_lgbm(prepared_dir)
 
 if __name__ == "__main__":
     main()

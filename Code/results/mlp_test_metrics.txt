@@ -1,0 +1,7 @@
+TEST RESULTS
+Loss: 0.250840
+Accuracy: 0.887244
+F1 (weighted): 0.930560
+Recall (weighted): 0.887244
+F1 (pos=1): 0.088202
+Recall (pos=1): 0.496983

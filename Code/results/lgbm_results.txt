@@ -1,0 +1,4 @@
+[BASE] AUC=0.8884  Recall@5%FPR=0.5254  FPR_real=0.0488  thr(valid)=0.737996
+[BASE] best_iteration=387
+[ALT ] AUC=0.8841  Recall@5%FPR=0.5142  thr(valid)=0.709311
+[ALT ] best_iteration=289
