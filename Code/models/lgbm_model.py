@@ -56,6 +56,59 @@ def _plot_learning_curve(evals_result: dict, name_map: dict, title: str, out_png
     plt.tight_layout()
     plt.savefig(out_png, dpi=120)
 
+def _plot_learning_curve2(evals_result: dict, name_map: dict, title: str, out_png: Path):
+    """
+    Plots learning curves using ERROR on Y axis.
+    - If AUC present -> error = 1 - AUC
+    - If a loss metric present (e.g., 'binary_logloss') -> error = loss (tal cual)
+    """
+    def _pick_metric_keys(metrics_dict: dict):
+        # Regresa (kind, key) donde kind in {"auc","loss"} y key es la clave real
+        # Priorizamos pérdidas si existen; si no, usamos AUC.
+        loss_like = [k for k in metrics_dict.keys() if "logloss" in k or "loss" in k]
+        if loss_like:
+            return "loss", loss_like[0]
+        if "auc" in metrics_dict:
+            return "auc", "auc"
+        # último recurso: toma el primer métrico disponible y trátalo como "loss"
+        # (mejor que fallar silenciosamente)
+        any_key = next(iter(metrics_dict.keys()))
+        return ("loss", any_key)
+
+    plt.figure(figsize=(8, 5))
+    plotted_any = False
+
+    for raw, pretty in name_map.items():
+        if raw not in evals_result:
+            continue
+        # evals_result[raw] es un dict {metric_name: [values...]}
+        kind, key = _pick_metric_keys(evals_result[raw])
+        values = evals_result[raw][key]
+
+        if kind == "auc":
+            # error = 1 - AUC
+            err_values = [1.0 - v if v is not None else None for v in values]
+            label = pretty.replace("AUC", "Error") if "AUC" in pretty else pretty
+        else:
+            # Es una loss: ya es error
+            err_values = values
+            # Intenta mejorar la etiqueta si trae el nombre del métrico
+            label = pretty
+            if "AUC" in label:
+                label = label.replace("AUC", "Error")
+
+        plt.plot(err_values, label=label)
+        plotted_any = True
+
+    plt.xlabel("Iteration")
+    plt.ylabel("Error")
+    plt.title(title)
+    if plotted_any:
+        plt.legend()
+    plt.tight_layout()
+    plt.savefig(out_png, dpi=120)
+
+
 # ============================
 # Core
 # ============================
@@ -220,6 +273,21 @@ def run_lgbm(
         title="LightGBM Learning Curve (ALT)",
         out_png=results_dir / "lgbm_learning_curve_alt.png"
     )
+
+    # --- Save learning curves ---
+    _plot_learning_curve2(
+        evals_result_base,
+        name_map={"train": "Train Error", "valid": "Val Error"},
+        title="LightGBM Learning Curve (BASE)",
+        out_png=results_dir / "lgbm_errorlearning_curve_base.png"
+    )
+    _plot_learning_curve2(
+        evals_result_alt,
+        name_map={"train": "Train Error", "valid": "Val Error"},
+        title="LightGBM Learning Curve (ALT)",
+        out_png=results_dir / "lgbm_errorlearning_curve_alt.png"
+    )
+
 
     return {
         "base": {
