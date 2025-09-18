@@ -1,4 +1,4 @@
-# run.py
+# original run.py
 import argparse
 from pathlib import Path
 import re
@@ -101,11 +101,11 @@ def main():
         help="For --mode xgboost/mlp/lgbm: path to prepared variant folder, e.g. prepared_data/prepared_base"
     )
     parser.add_argument("--resampler", default="none", choices=["none", "ros", "smote"],
-                        help="(xgboost/mlp) Resampling strategy applied to TRAIN only.")
+                        help="(xgboost/mlp/lgbm) Resampling strategy applied to TRAIN only.")
     parser.add_argument("--seed", type=int, default=42,
-                        help="(xgboost/mlp) Random seed for resampling and model.")
+                        help="(xgboost/mlp/lgbm) Random seed for resampling and model.")
     parser.add_argument("--smote-k", type=int, default=5,
-                        help="(xgboost/mlp) k_neighbors for SMOTE.")
+                        help="(xgboost/mlp/lgbm) k_neighbors for SMOTE.")
     args = parser.parse_args()
 
     if args.mode in ("clean", "prepare"):
@@ -175,7 +175,12 @@ def main():
         if not prepared_dir.exists():
             raise FileNotFoundError(f"Prepared path not found: {prepared_dir}")
 
-        lgbm_model.run_lgbm(prepared_dir)
+        lgbm_model.run_lgbm(
+            prepared_dir,
+            resampler=args.resampler,
+            seed=args.seed,
+            smote_k=args.smote_k,
+        )
 
 if __name__ == "__main__":
     main()
