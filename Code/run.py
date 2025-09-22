@@ -9,7 +9,8 @@ import clean_data
 # Model runners
 from models import xgboost_model
 from models import mlp_binary_model
-from models import lgbm_model  # NEW: LightGBM module
+from models import lgbm_model
+from models import random_forest_model  
 
 
 # ---------------------------
@@ -86,9 +87,10 @@ def main():
         "--mode",
         type=str,
         required=True,
-        choices=["clean", "prepare", "xgboost", "mlp", "lgbm"],  # added lgbm
+        choices=["clean", "prepare", "xgboost", "mlp", "lgbm", "randomforest"], 
         help="Pipeline mode. 'clean' -> clean CSV; 'prepare' -> write train/val/test pickles; "
-             "'xgboost' -> train XGBoost; 'mlp' -> train MLP; 'lgbm' -> train LightGBM."
+             "'xgboost' -> train XGBoost; 'mlp' -> train MLP; "
+             "'lgbm' -> train LightGBM; 'randomforest' -> train Random Forest."
     )
     parser.add_argument(
         "--datacsv",
@@ -176,6 +178,20 @@ def main():
             raise FileNotFoundError(f"Prepared path not found: {prepared_dir}")
 
         lgbm_model.run_lgbm(
+            prepared_dir,
+            resampler=args.resampler,
+            seed=args.seed,
+            smote_k=args.smote_k,
+        )
+        
+    elif args.mode == "randomforest":
+        if not args.preparedpath:
+            raise ValueError("--preparedpath is required for mode 'randomforest'")
+        prepared_dir = Path(args.preparedpath).expanduser().resolve()
+        if not prepared_dir.exists():
+            raise FileNotFoundError(f"Prepared path not found: {prepared_dir}")
+
+        random_forest_model.run_rf(
             prepared_dir,
             resampler=args.resampler,
             seed=args.seed,

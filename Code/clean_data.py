@@ -122,7 +122,7 @@ def run_clean(datacsv: str, output_csv: str):
     out_path = Path(output_csv).expanduser().resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # === BEGIN: original pipeline (unchanged logic; only the read/write lines were adapted) ===
+    # === BEGIN  ===
 
     # Read (was: base = pd.read_csv("Base.csv"))
     base = pd.read_csv(str(in_path))
@@ -146,7 +146,7 @@ def run_clean(datacsv: str, output_csv: str):
         "device_distinct_emails_8w","month"
     ]
 
-    # (… your null-handling, ranges dict, replacement with NaN, negatives count …)
+    # ( null-handling, ranges dict, replacement with NaN, negatives count …)
     ranges = {
         "income": (0.1, 0.9),
         "name_email_similarity": (0, 1),
