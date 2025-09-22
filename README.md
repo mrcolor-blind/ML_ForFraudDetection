@@ -66,7 +66,7 @@ The pipeline follows three main stages:
 
 1. **Cleaning** raw CSVs
 2. **Preparing** temporal splits for training, validation, and testing
-3. **Training** machine learning models (currently XGBoost) with optional balancing
+3. **Training** machine learning models with optional balancing
 ---
 
 ## Preparing Before Running the Code
@@ -122,12 +122,26 @@ Other dataset variants (Variant I–V) are automatically handled and saved in co
 
 ## 3. Modeling Stage (MLP)
 
-This stage trains an MLP classifier using the prepared splits. It supports optional balancing of the train set with **none**, **random oversampling (ros)**, or **SMOTE (smote)**.
+This stage trains an MLP classifier using the prepared splits. It supports optional balancing of the train set with **none**, **random oversampling (ros)**, or **SMOTE (smote)**. This specific model allows for W&B linking. After running, you may provide your API key or select dont visualize my results if you just want to run locally (Local outputs will still work).
+
 
 - Run training:
 ```
-python run.py --mode xgboost --preparedpath prepared_data/prepared_base
+python run.py --mode mlp --preparedpath prepared_data/prepared_base
 ```
+
+- With balancing options:
+``` 
+python run.py --mode mlp --preparedpath prepared_data/prepared_base --resampler ros --seed 42
+```
+```
+python run.py --mode mlp --preparedpath prepared_data/prepared_base --resampler smote --smote-k 5
+```
+
+- Output:  
+  - results/mlp_test_results.txt (metrics file)  
+  - results/mlp[...].png (learning and validation curves)
+
 
 ## 3. Modeling Stage (XGBoost)
 
