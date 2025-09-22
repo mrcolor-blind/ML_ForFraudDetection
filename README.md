@@ -80,6 +80,10 @@ Before using the pipeline, make sure the environment is properly set up:
 
 - Place the required `.csv` files into the `/OriginalDataset/` folder. Each dataset variant you want to process (e.g., "Base.csv", "Variant III.csv", etc.) must be located in this directory before starting the cleaning stage.
 
+- Install the necesary dependencies:
+```
+pip install numpy pandas scikit-learn joblib matplotlib seaborn torch wandb
+```
 
 ## 1. Cleaning Stage
 
