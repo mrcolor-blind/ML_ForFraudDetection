@@ -11,6 +11,7 @@ Antes de la estructura general del README, incluimos en español la sección de 
 ### Reporte y Análisis
 - `/TeamDocs/`
   - **ReporteFinal_ML_FraudDetection.pdf**: documento con la descripción del reto, metodología, resultados y conclusiones.
+  - **RetoIA_Fraude_Presentacion.pdf**: presentación del reto en equipo.
 
 ### Implementación
 - `/Code/`
