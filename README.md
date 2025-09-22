@@ -151,33 +151,78 @@ python run.py --mode xgboost --preparedpath prepared_data/prepared_base --resamp
 
 ---
 
+## 3. Modeling Stage (LightGBM)
+
+This stage trains a LightGBM classifier using the prepared splits. It also supports optional balancing of the train set with **none**, **ros**, or **smote**.
+
+- Run training:  
+```
+python run.py --mode lgbm --preparedpath prepared_data/prepared_base
+```
+- With balancing options:  
+```
+python run.py --mode lgbm --preparedpath prepared_data/prepared_base --resampler ros --seed 42  
+```
+```
+python run.py --mode lgbm --preparedpath prepared_data/prepared_base --resampler smote --smote-k 5
+```
+- Output:  
+  - models/lgbm_Base.joblib (saved model)  
+  - results/lgbm_results.txt (metrics file)  
+  - results/lgbm[...]_alt.png (learning and validation curves)
+
+---
+
+## 3. Modeling Stage (Random Forest)
+
+This stage trains a Random Forest classifier using the prepared splits. It supports the same balancing options as the other models.
+
+- Run training:  
+```
+python run.py --mode randomforest --preparedpath prepared_data/prepared_base
+```
+
+- With balancing options:  
+```
+python run.py --mode randomforest --preparedpath prepared_data/prepared_base --resampler ros --seed 42
+```
+```
+python run.py --mode randomforest --preparedpath prepared_data/prepared_base --resampler smote --smote-k 5
+```
+- Output:  
+  - models/rf_Base.joblib (saved model)  
+  - Console evaluation metrics (AUC-ROC, Precision, Recall, F1, Confusion Matrix)
+
+
 ## Arguments
 
 - **--mode**  
   Selects pipeline stage. Options:  
   - clean  
   - prepare  
+  - mlp  
   - xgboost  
+  - lgbm  
+  - randomforest  
 
 - **--datacsv**  
   Path to input CSV. Required for `clean` and `prepare`.
 
 - **--preparedpath**  
-  Path to folder with prepared splits (e.g., `prepared_data/prepared_base`). Required for `xgboost`.
+  Path to folder with prepared splits (e.g., `prepared_data/prepared_base`). Required for all modeling stages (`mlp`, `xgboost`, `lgbm`, `randomforest`).
 
-- **--resampler** *(xgboost only)*  
+- **--resampler** *(modeling stages only)*  
   Strategy for balancing the train split. Options:  
   - none (default)  
   - ros (RandomOverSampler)  
   - smote (SMOTE)  
 
-- **--seed** *(xgboost only)*  
+- **--seed** *(modeling stages only)*  
   Random seed for reproducibility. Default: 42.
 
-- **--smote-k** *(xgboost only)*  
+- **--smote-k** *(when using `--resampler smote`)*  
   Number of neighbors for SMOTE. Default: 5.
 
----
 
 ## Workflow Summary
 
